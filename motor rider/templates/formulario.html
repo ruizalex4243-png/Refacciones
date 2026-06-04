@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Finalizar Compra</h2>
+<div class="checkout-container">
+    <div class="carrito-resumen">
+        <h3>Tu Pedido</h3>
+        <ul id="lista-carrito"></ul>
+        <h3 class="total-text">Total: $<span id="total-carrito">0.00</span></h3>
+    </div>
+
+    <div class="formulario-pago">
+        <h3>Datos de Envío</h3>
+        <form id="form-pago">
+            <div class="form-group">
+                <label>Nombre Completo:</label>
+                <input type="text" id="cliente" required>
+            </div>
+            <div class="form-group">
+                <label>Dirección de Envío:</label>
+                <input type="text" id="direccion" required>
+            </div>
+            <div class="form-group">
+                <label>Método de Pago:</label>
+                <select id="pago" required>
+                    <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                    <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                    <option value="PayPal">PayPal</option>
+                    <option value="Efectivo (Oxxo)">Efectivo (Oxxo)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary btn-block">Confirmar y Pagar</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

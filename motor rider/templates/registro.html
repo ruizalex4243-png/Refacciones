@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Registro de Ventas (Admin)</h2>
+<div class="table-container">
+    <table class="ventas-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Dirección</th>
+                <th>Pago</th>
+                <th>Total</th>
+                <th>Artículos</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ventas %}
+            <tr>
+                <td data-label="ID">#{{ v.id }}</td>
+                <td data-label="Cliente">{{ v.cliente }}</td>
+                <td data-label="Dirección">{{ v.direccion }}</td>
+                <td data-label="Pago">{{ v.pago }}</td>
+                <td data-label="Total" style="font-weight: bold; color: var(--accent-cyan);">${{ v.total }}</td>
+                <td data-label="Artículos">
+                    <div class="carrito-json" data-raw-json='{{ v.carrito | safe }}'>
+                        Cargando artículos...
+                    </div>
+                </td>
+                <td data-label="Fecha">{{ v.fecha }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 2rem;">No hay ventas registradas en la base de datos aún.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Parsea el JSON crudo de la base de datos para mostrarlo ordenado en el panel admin
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.carrito-json').forEach(el => {
+            try {
+                let rawData = el.getAttribute('data-raw-json');
+                // Reemplazar comillas simples de Python a dobles de JSON si es necesario
+                rawData = rawData.replace(/'/g, '"'); 
+                const cartList = JSON.parse(rawData);
+                
+                let outputHtml = "<ul style='padding-left:15px; margin:0;'>";
+                cartList.forEach(item => {
+                    outputHtml += `<li>${item.cantidad}x ${item.nombre} ($${item.precio})</li>`;
+                });
+                outputHtml += "</ul>";
+                
+                el.innerHTML = outputHtml;
+            } catch(e) {
+                // Si la BD guardó un formato extraño, lo muestra como texto original
+                el.innerText = el.getAttribute('data-raw-json'); 
+            }
+        });
+    });
+</script>
+{% endblock %}

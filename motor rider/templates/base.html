@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vértice Dynamics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">Vértice Dynamics</div>
+        <nav>
+            <a href="{{ url_for('inicio') }}">Inicio</a>
+            <a href="{{ url_for('catalogo') }}">Catálogo</a>
+            <a href="{{ url_for('registro') }}">Ventas</a>
+            <a href="{{ url_for('referencias') }}">Referencias</a>
+            <a href="{{ url_for('abrir_juego') }}" class="btn-juego">Jugar Vértice Rider</a>
+        </nav>
+        <div class="cart-icon">
+            <a href="{{ url_for('checkout') }}">
+                🛒 <span id="cart-count">0</span>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Vértice Dynamics. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/carrito.js') }}" defer></script>
+</body>
+</html>

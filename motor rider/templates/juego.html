@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vértice Rider - Mobile Edition</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #080c14;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            /* Evita gestos de scroll y zoom nativos del móvil mientras se juega */
+            touch-action: none; 
+        }
+        canvas {
+            background-color: #0c101c;
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.3);
+            border: 2px solid #505a6e;
+            
+            /* Ajuste dinámico para pantallas móviles */
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        #btn-volver {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 8px 16px;
+            background: #66fcf1;
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 10;
+        }
+        #btn-volver:hover {
+            background: #45a29e;
+        }
+    </style>
+</head>
+<body>
+
+    <a id="btn-volver" href="/">Volver</a>
+    <canvas id="gameCanvas" width="500" height="800"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Configuraciones
+        const ANCHO = 500;
+        const ALTO = 800;
+        const COLOR_UI = "#66fcf1";
+        const COLOR_ROJO = "#ff5050";
+        const COLOR_ASFALTO = "#181c24";
+        const COLOR_BORDE = "#505a6e";
+        const COLOR_CARRIL = "#ebebeb";
+
+        // Imágenes
+        const jugadorImg = new Image();
+        jugadorImg.src = "https://e7.pngegg.com/pngimages/931/110/png-clipart-kawasaki-ninja-650r-kawasaki-motorcycles-sport-bike-motorcycle-exhaust-system-headlamp-thumbnail.png";
+        
+        const enemigoImg = new Image();
+        enemigoImg.src = "https://www.vhv.rs/dpng/d/469-4692031_lavagem-de-carro-png-2012-camaro-zl1-transparent.png";
+
+        // Variables del juego
+        let jugador = { x: ANCHO / 2 - 30, y: ALTO - 160, w: 60, h: 100 };
+        let player_draw_x = jugador.x;
+        let player_draw_y = jugador.y;
+        let mouseX = ANCHO / 2;
+        let mouseY = ALTO - 160;
+        
+        let enemigos = [];
+        let trail = [];
+        let score = 0;
+        let vidas = 3;
+        let gameOver = false;
+        let scroll = 0;
+
+        // Crear enemigos
+        function crearEnemigo() {
+            return {
+                x: Math.random() * (ANCHO - 140) + 40,
+                y: Math.random() * -800 - 120,
+                speed: Math.random() * 4 + 5,
+                w: 60,
+                h: 110
+            };
+        }
+
+        function iniciarJuego() {
+            score = 0;
+            vidas = 3;
+            gameOver = false;
+            enemigos = Array.from({length: 4}, crearEnemigo);
+            trail = [];
+            player_draw_x = ANCHO / 2 - jugador.w / 2;
+            player_draw_y = ALTO - 160;
+            mouseX = player_draw_x;
+            mouseY = player_draw_y;
+        }
+
+        // --- CONTROLES ADAPTADOS ---
+
+        // Función para calcular la posición exacta dentro del Canvas escalado
+        function obtenerPosicionToque(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            // Convierte las coordenadas de la pantalla física a las coordenadas internas (500x800)
+            return {
+                x: (clientX - rect.left) * (ANCHO / rect.width),
+                y: (clientY - rect.top) * (ALTO / rect.height)
+            };
+        }
+
+        // Eventos para Escritorio (Ratón)
+        canvas.addEventListener("mousemove", (e) => {
+            const pos = obtenerPosicionToque(e.clientX, e.clientY);
+            mouseX = pos.x;
+            mouseY = pos.y;
+        });
+
+        // Eventos para Móviles (Toque)
+        function procesarToque(e) {
+            if (e.touches.length > 0) {
+                const toque = e.touches[0];
+                const pos = obtenerPosicionToque(toque.clientX, toque.clientY);
+                mouseX = pos.x;
+                mouseY = pos.y;
+            }
+            // Evita que la pantalla se mueva o haga scroll al jugar
+            if (e.cancelable) e.preventDefault(); 
+        }
+
+        canvas.addEventListener("touchstart", (e) => {
+            if (gameOver) {
+                iniciarJuego();
+            } else {
+                procesarToque(e);
+            }
+        }, { passive: false });
+
+        canvas.addEventListener("touchmove", procesarToque, { passive: false });
+
+        // Soporte alternativo de teclado para reiniciar
+        document.addEventListener("keydown", (e) => {
+            if (gameOver && (e.key === "r" || e.key === "R")) {
+                iniciarJuego();
+            }
+        });
+
+        // Dibujar Carretera
+        function dibujarCarretera() {
+            let grd = ctx.createLinearGradient(0, 0, 0, ALTO);
+            grd.addColorStop(0, "#0c101c");
+            grd.addColorStop(1, "#121828");
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, ANCHO, ALTO);
+
+            const offset = (mouseX - ANCHO / 2) * 0.08;
+            const top_w = 120;
+            const bottom_w = 430;
+            const road_top_y = 150;
+
+            const tr = ANCHO / 2 + top_w / 2 + offset;
+            const tl = ANCHO / 2 - top_w / 2 + offset;
+            const br = ANCHO / 2 + bottom_w / 2 + offset;
+            const bl = ANCHO / 2 - bottom_w / 2 + offset;
+
+            ctx.fillStyle = COLOR_ASFALTO;
+            ctx.beginPath();
+            ctx.moveTo(tl, road_top_y);
+            ctx.lineTo(tr, road_top_y);
+            ctx.lineTo(br, ALTO);
+            ctx.lineTo(bl, ALTO);
+            ctx.fill();
+            
+            ctx.strokeStyle = COLOR_BORDE;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.fillStyle = COLOR_CARRIL;
+            for (let i = 0; i < 12; i++) {
+                let seg_y1 = road_top_y + i * 70 + (scroll % 70);
+                let seg_y2 = seg_y1 + 38;
+                
+                if (seg_y1 > ALTO) continue;
+
+                let t1 = (seg_y1 - road_top_y) / Math.max(1, (ALTO - road_top_y));
+                let t2 = (seg_y2 - road_top_y) / Math.max(1, (ALTO - road_top_y));
+
+                let half1 = top_w / 4 + (bottom_w / 4 - top_w / 4) * t1;
+                let half2 = top_w / 4 + (bottom_w / 4 - top_w / 4) * t2;
+
+                ctx.beginPath();
+                ctx.moveTo(ANCHO / 2 - half1 + offset, seg_y1);
+                ctx.lineTo(ANCHO / 2 + half1 + offset, seg_y1);
+                ctx.lineTo(ANCHO / 2 + half2 + offset, seg_y2);
+                ctx.lineTo(ANCHO / 2 - half2 + offset, seg_y2);
+                ctx.fill();
+            }
+        }
+
+        // Bucle Principal
+        function actualizar() {
+            if (!gameOver) {
+                player_draw_x += (mouseX - jugador.w / 2 - player_draw_x) * 0.18;
+                player_draw_y += (mouseY - jugador.h / 2 - player_draw_y) * 0.18;
+
+                jugador.x = Math.max(0, Math.min(ANCHO - jugador.w, player_draw_x));
+                jugador.y = Math.max(0, Math.min(ALTO - jugador.h, player_draw_y));
+
+                scroll += 8 + score * 0.08;
+
+                trail.push({x: jugador.x + jugador.w / 2, y: jugador.y + jugador.h / 2});
+                if (trail.length > 18) trail.shift();
+
+                enemigos.forEach((enemigo, index) => {
+                    enemigo.y += enemigo.speed + score * 0.03;
+
+                    if (enemigo.y > ALTO) {
+                        enemigos[index] = crearEnemigo();
+                        score++;
+                    }
+
+                    if (jugador.x < enemigo.x + enemigo.w &&
+                        jugador.x + jugador.w > enemigo.x &&
+                        jugador.y < enemigo.y + enemigo.h &&
+                        jugador.y + jugador.h > enemigo.y) {
+                        
+                        vidas--;
+                        enemigos[index] = crearEnemigo();
+                        if (vidas <= 0) gameOver = true;
+                    }
+                });
+            }
+
+            ctx.clearRect(0, 0, ANCHO, ALTO);
+            dibujarCarretera();
+
+            trail.forEach((pos, i) => {
+                let alpha = (i / trail.length) * 0.8;
+                let size = 28 + i * 2;
+                ctx.fillStyle = `rgba(102, 252, 241, ${alpha})`;
+                ctx.fillRect(pos.x - size/2, pos.y - size/2, size, size);
+            });
+
+            enemigos.forEach(enemigo => {
+                ctx.drawImage(enemigoImg, enemigo.x, enemigo.y, enemigo.w, enemigo.h);
+                ctx.strokeStyle = COLOR_ROJO;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(enemigo.x, enemigo.y, enemigo.w, enemigo.h);
+            });
+
+            ctx.strokeStyle = COLOR_UI;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(jugador.x, jugador.y, jugador.w, jugador.h);
+            ctx.drawImage(jugadorImg, jugador.x, jugador.y, jugador.w, jugador.h);
+
+            ctx.fillStyle = COLOR_UI;
+            ctx.font = "bold 32px Arial";
+            ctx.fillText(`Puntaje: ${score}`, 15, 40);
+            
+            ctx.fillStyle = "white";
+            ctx.font = "28px Arial";
+            ctx.fillText(`Vidas: ${vidas}`, 15, 80);
+
+            // UI de Controles modificada para pantallas táctiles
+            ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+            ctx.fillRect(250, 15, 230, 70);
+            ctx.strokeStyle = COLOR_UI;
+            ctx.strokeRect(250, 15, 230, 70);
+            ctx.fillStyle = COLOR_UI;
+            ctx.font = "bold 22px Arial";
+            ctx.fillText("CONTROL", 315, 40);
+            ctx.fillStyle = "white";
+            ctx.font = "16px Arial";
+            ctx.fillText("Arrastra para mover la moto", 260, 65);
+
+            if (gameOver) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                ctx.fillRect(0, 0, ANCHO, ALTO);
+                
+                ctx.fillStyle = COLOR_ROJO;
+                ctx.font = "bold 58px Arial";
+                ctx.fillText("GAME OVER", 65, ALTO / 2 - 50);
+                
+                ctx.fillStyle = "white";
+                ctx.font = "bold 34px Arial";
+                ctx.fillText(`Puntaje Final: ${score}`, 100, ALTO / 2 + 20);
+                
+                ctx.font = "28px Arial";
+                ctx.fillText("Toca la pantalla para", 115, ALTO / 2 + 80);
+                ctx.fillText("reiniciar el juego", 145, ALTO / 2 + 115);
+            }
+
+            requestAnimationFrame(actualizar);
+        }
+
+        iniciarJuego();
+        actualizar();
+    </script>
+</body>
+</html>

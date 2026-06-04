@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <h1>Bienvenido a Vértice Dynamics</h1>
+    <p>El mejor equipamiento y refacciones para llevar tu motocicleta al siguiente nivel.</p>
+    
+    <div class="carousel-container">
+        <div class="carousel-slide fade">
+            <img src="https://img2.wallspic.com/crops/3/5/1/9/3/139153/139153-automovilismo-las_carreras_de_motos-motociclismo-motocicleta-3840x2160.jpg" alt="Velocidad y Adrenalina">
+            <div class="carousel-caption">Velocidad y Adrenalina</div>
+        </div>
+        <div class="carousel-slide fade">
+            <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&w=1200&q=80" alt="Detalles que importan">
+            <div class="carousel-caption">Refacciones de Alta Precisión</div>
+        </div>
+        <div class="carousel-slide fade">
+            <img src="https://img2.wallspic.com/crops/1/5/6/7/5/157651/157651-ducati_hypermotard_950-2019_ducati_hypermotard_950_sp-motocicleta-ducati-ducati_panigale_v4-3840x2160.jpg" alt="Taller especializado">
+            <div class="carousel-caption">Equipamiento Profesional</div>
+        </div>
+        <div class="carousel-slide fade">
+            <img src="https://img3.wallspic.com/crops/6/2/2/1/3/131226/131226-motocicleta-stunt_artista_interprete_o_ejecutante-motociclismo-accesorios_de_la_motocicleta-el_deporte_de_la_bicicleta-3840x2160.jpg" alt="El camino te espera">
+            <div class="carousel-caption">Conquista Nuevas Rutas</div>
+        </div>
+    </div>
+
+    <br>
+    <a href="{{ url_for('catalogo') }}" class="btn-primary" style="margin-top: 20px; display: inline-block;">Ver Catálogo Completo</a>
+</section>
+
+<script>
+    let slideIndex = 0;
+    mostrarSlides();
+
+    function cambiarSlide(n) {
+        slideIndex += n - 1; 
+        mostrarSlides();
+    }
+
+    function mostrarSlides() {
+        let i;
+        let slides = document.getElementsByClassName("carousel-slide");
+        for (i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";  
+        }
+        slideIndex++;
+        if (slideIndex > slides.length) {slideIndex = 1}    
+        slides[slideIndex-1].style.display = "block";  
+        setTimeout(mostrarSlides, 4000); 
+    }
+</script>
+{% endblock %}

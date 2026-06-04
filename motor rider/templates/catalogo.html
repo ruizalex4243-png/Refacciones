@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Catálogo de Productos</h2>
+
+<div class="grid-productos">
+    {% for p in productos %}
+    <div class="producto-card">
+        <div class="producto-carousel">
+            <img src="{{ p.imagenes[0] }}" alt="{{ p.nombre }}" class="img-galeria" data-imagenes='{{ p.imagenes | tojson | safe }}'>
+        </div>
+
+        <div class="producto-info">
+            <span class="categoria">{{ p.categoria }}</span>
+            <h3>{{ p.nombre }}</h3>
+            <p class="precio">${{ p.precio }} MXN</p>
+            <p class="desc">{{ p.descripcion }}</p>
+            <button type="button" class="btn-add btn-agregar-carrito btn-block"
+                data-id="{{ p.id }}"
+                data-nombre="{{ p.nombre }}"
+                data-precio="{{ p.precio }}">
+                Agregar al Carrito
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

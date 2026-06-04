@@ -1,0 +1,23 @@
+# Entornos virtuales de Python
+venv/
+env/
+.venv/
+
+# Archivos compilados y caché de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Bases de datos SQLite (para evitar subir tu compras.db u otras bases locales)
+*.db
+*.sqlite3
+
+# Variables de entorno (donde guardas contraseñas o claves secretas)
+.env
+
+# Archivos ocultos del sistema operativo (Windows/Mac)
+Thumbs.db
+.DS_Store
+
+# Carpetas de extensiones o configuraciones locales de Visual Studio
+.vscode/

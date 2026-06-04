@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="success-container" style="text-align: center; padding: 4rem 0;">
+    <h2 style="color: var(--accent-cyan); font-size: 2.5rem; margin-bottom: 1rem;">¡Gracias por tu compra!</h2>
+    <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2rem;">Tu orden ha sido registrada exitosamente. En breve prepararemos tu envío.</p>
+    <a href="{{ url_for('inicio') }}" class="btn-primary">Volver al Inicio</a>
+</div>
+<script>
+    localStorage.removeItem('carrito');
+    document.getElementById('cart-count').innerText = "0";
+</script>
+{% endblock %}
