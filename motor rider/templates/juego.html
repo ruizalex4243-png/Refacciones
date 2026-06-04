@@ -72,6 +72,16 @@
         const enemigoImg = new Image();
         enemigoImg.src = "https://www.vhv.rs/dpng/d/469-4692031_lavagem-de-carro-png-2012-camaro-zl1-transparent.png";
 
+        // --- AUDIOS ---
+        const bgMusic = new Audio("static/fondo.mp3");
+        bgMusic.loop = true; 
+        bgMusic.volume = 0.5; // Volumen al 50% para que no tape el sonido del choque
+
+        const crashSound = new Audio("static/choque.wav");
+        crashSound.volume = 1.0;
+
+        let musicaIniciada = false;
+
         // Variables del juego
         let jugador = { x: ANCHO / 2 - 30, y: ALTO - 160, w: 60, h: 100 };
         let player_draw_x = jugador.x;
@@ -107,6 +117,11 @@
             player_draw_y = ALTO - 160;
             mouseX = player_draw_x;
             mouseY = player_draw_y;
+            
+            // Si el juego se reinicia, nos aseguramos de que la música suene
+            if (musicaIniciada) {
+                bgMusic.play().catch(e => console.log("Esperando interacción para reproducir audio"));
+            }
         }
 
         // --- CONTROLES ADAPTADOS ---
@@ -128,6 +143,14 @@
             mouseY = pos.y;
         });
 
+        // Activar música al primer clic en escritorio
+        canvas.addEventListener("mousedown", () => {
+            if (!musicaIniciada && !gameOver) {
+                bgMusic.play();
+                musicaIniciada = true;
+            }
+        });
+
         // Eventos para Móviles (Toque)
         function procesarToque(e) {
             if (e.touches.length > 0) {
@@ -141,6 +164,12 @@
         }
 
         canvas.addEventListener("touchstart", (e) => {
+            // Iniciar música en el primer toque de la pantalla táctil
+            if (!musicaIniciada && !gameOver) {
+                bgMusic.play();
+                musicaIniciada = true;
+            }
+
             if (gameOver) {
                 iniciarJuego();
             } else {
@@ -236,9 +265,19 @@
                         jugador.y < enemigo.y + enemigo.h &&
                         jugador.y + jugador.h > enemigo.y) {
                         
+                        // --- REPRODUCIR SONIDO DE CHOQUE ---
+                        crashSound.currentTime = 0; // Reinicia el audio por si hay choques seguidos
+                        crashSound.play();
+
                         vidas--;
                         enemigos[index] = crearEnemigo();
-                        if (vidas <= 0) gameOver = true;
+                        
+                        if (vidas <= 0) {
+                            gameOver = true;
+                            // Opcional: Pausar la música al perder
+                            bgMusic.pause();
+                            musicaIniciada = false; // Requiere toque para volver a iniciar
+                        }
                     }
                 });
             }
